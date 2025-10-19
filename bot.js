@@ -1,17 +1,51 @@
 // Telegram Bot Integration for Betting App
 const TelegramBot = require('node-telegram-bot-api');
 
-// Replace with your actual bot token
-const token = 'YOUR_TELEGRAM_BOT_TOKEN';
+// Load environment variables from .env file
+try {
+  require('dotenv').config();
+} catch (error) {
+  console.log('dotenv package not found, loading environment variables manually');
+  // Simple fallback for reading .env file if dotenv package is not available
+  const fs = require('fs');
+  if (fs.existsSync('.env')) {
+    const envConfig = fs.readFileSync('.env', 'utf8')
+      .split('\n')
+      .filter(line => line.trim() && !line.startsWith('#'))
+      .reduce((acc, line) => {
+        const [key, value] = line.split('=');
+        if (key && value) {
+          process.env[key.trim()] = value.trim();
+        }
+        return acc;
+      }, {});
+  }
+}
 
-// Create a bot instance
-const bot = new TelegramBot(token, { polling: true });
+// Get token from environment variables
+const token = process.env.TELEGRAM_BOT_TOKEN || 'YOUR_TELEGRAM_BOT_TOKEN';
+
+// Create a bot instance based on environment
+let bot;
+if (process.env.NODE_ENV === 'production') {
+  // In production, the bot is initialized in server.js with webhook
+  bot = global.bot;
+  console.log('Bot using webhook mode from server.js');
+} else {
+  // In development, use polling
+  bot = new TelegramBot(token, { polling: true });
+  console.log('Bot started in polling mode');
+}
+
+// Owner ID for admin access from environment variables
+const OWNER_ID = process.env.OWNER_ID || '123456789'; 
 
 // Database simulation (in a real app, this would be a database connection)
 const userDatabase = {
     users: {},
     transactions: [],
-    referrals: {}
+    referrals: {},
+    pendingWithdrawals: []
 };
 
 // Bank details for deposits
@@ -40,6 +74,292 @@ function generateTransactionCode() {
     return `TX${timestamp}${random}`;
 }
 
+// Admin command handler
+bot.onText(/\/admin/, (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id.toString();
+    
+    // Check if the user is the owner
+    if (userId === OWNER_ID) {
+        showAdminPanel(chatId);
+    } else {
+        bot.sendMessage(chatId, "You don't have permission to access the admin panel.");
+    }
+});
+
+// Function to show admin panel
+function showAdminPanel(chatId) {
+    const message = '🔐 *Admin Panel*\nSelect an option:';
+    const options = {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '✅ Approve Withdrawals', callback_data: 'admin_withdrawals' }],
+                [{ text: '📊 Today\'s Deposits Report', callback_data: 'admin_deposits' }],
+                [{ text: '👥 Manage Users', callback_data: 'admin_users' }],
+                [{ text: '🔙 Back to Main Menu', callback_data: 'back_to_main' }]
+            ]
+        }
+    };
+    
+    bot.sendMessage(chatId, message, options);
+}
+
+// Function to handle pending withdrawals
+function handlePendingWithdrawals(chatId) {
+    if (userDatabase.pendingWithdrawals.length === 0) {
+        bot.sendMessage(chatId, "No pending withdrawals to approve.", {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '🔙 Back to Admin Panel', callback_data: 'admin_panel' }]
+                ]
+            }
+        });
+        return;
+    }
+    
+    // Display each pending withdrawal with approve button
+    userDatabase.pendingWithdrawals.forEach(withdrawal => {
+        if (withdrawal.status === 'pending') {
+            const user = userDatabase.users[withdrawal.userId] || { username: 'Unknown' };
+            const message = `*Withdrawal Request*\n` +
+                `ID: ${withdrawal.id}\n` +
+                `User: ${user.username} (${withdrawal.userId})\n` +
+                `Amount: ₹${withdrawal.amount}\n` +
+                `Method: ${withdrawal.method}\n` +
+                `Account: ${JSON.stringify(withdrawal.accountDetails)}\n` +
+                `Date: ${new Date(withdrawal.timestamp).toLocaleString()}`;
+                
+            bot.sendMessage(chatId, message, {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '✅ Approve', callback_data: `approve_withdrawal_${withdrawal.id}` }]
+                    ]
+                }
+            });
+        }
+    });
+    
+    // Add back button after listing all withdrawals
+    bot.sendMessage(chatId, "End of withdrawal requests", {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '🔙 Back to Admin Panel', callback_data: 'admin_panel' }]
+            ]
+        }
+    });
+}
+
+// Function to approve withdrawal
+function approveWithdrawal(chatId, withdrawalId) {
+    const withdrawalIndex = userDatabase.pendingWithdrawals.findIndex(w => w.id === withdrawalId);
+    
+    if (withdrawalIndex === -1) {
+        bot.sendMessage(chatId, "Withdrawal request not found.");
+        return;
+    }
+    
+    const withdrawal = userDatabase.pendingWithdrawals[withdrawalIndex];
+    const user = userDatabase.users[withdrawal.userId];
+    
+    if (!user) {
+        bot.sendMessage(chatId, "User not found.");
+        return;
+    }
+    
+    // Update withdrawal status
+    withdrawal.status = 'approved';
+    withdrawal.approvedAt = new Date().toISOString();
+    
+    // Deduct from user balance
+    user.inrBalance -= withdrawal.amount;
+    
+    // Add to transactions
+    userDatabase.transactions.push({
+        userId: withdrawal.userId,
+        type: 'withdrawal',
+        amount: withdrawal.amount,
+        method: withdrawal.method,
+        timestamp: new Date().toISOString(),
+        status: 'completed'
+    });
+    
+    // Notify admin
+    bot.sendMessage(chatId, `Withdrawal #${withdrawalId} approved successfully.`, {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '🔙 Back to Admin Panel', callback_data: 'admin_panel' }]
+            ]
+        }
+    });
+    
+    // Notify user
+    bot.sendMessage(withdrawal.userId, 
+        `Your withdrawal request of ₹${withdrawal.amount} has been approved and processed. The funds should reach your account shortly.`);
+}
+
+// Function to handle today's deposits report
+function handleTodayDeposits(chatId) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Filter transactions for today's deposits
+    const todayDeposits = userDatabase.transactions.filter(tx => 
+        tx.type === 'deposit' && 
+        new Date(tx.timestamp) >= today
+    );
+    
+    if (todayDeposits.length === 0) {
+        bot.sendMessage(chatId, "No deposits made today.", {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '🔙 Back to Admin Panel', callback_data: 'admin_panel' }]
+                ]
+            }
+        });
+        return;
+    }
+    
+    // Calculate total amount
+    const totalAmount = todayDeposits.reduce((sum, tx) => sum + tx.amount, 0);
+    
+    // Group by method
+    const byMethod = {};
+    todayDeposits.forEach(tx => {
+        byMethod[tx.method] = (byMethod[tx.method] || 0) + tx.amount;
+    });
+    
+    // Create report message
+    let message = `*Today's Deposits Report*\n\n`;
+    message += `Total Deposits: ${todayDeposits.length}\n`;
+    message += `Total Amount: ₹${totalAmount}\n\n`;
+    message += `*Breakdown by Method:*\n`;
+    
+    for (const [method, amount] of Object.entries(byMethod)) {
+        message += `${method}: ₹${amount}\n`;
+    }
+    
+    bot.sendMessage(chatId, message, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '🔙 Back to Admin Panel', callback_data: 'admin_panel' }]
+            ]
+        }
+    });
+}
+
+// Function to handle user management
+function handleUserManagement(chatId) {
+    // Get all users
+    const userIds = Object.keys(userDatabase.users);
+    
+    if (userIds.length === 0) {
+        bot.sendMessage(chatId, "No users registered yet.", {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '🔙 Back to Admin Panel', callback_data: 'admin_panel' }]
+                ]
+            }
+        });
+        return;
+    }
+    
+    // Send user list with pagination if needed
+    const message = `*User Management*\nTotal Users: ${userIds.length}`;
+    
+    bot.sendMessage(chatId, message, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [
+                ...userIds.slice(0, 5).map(userId => {
+                    const user = userDatabase.users[userId];
+                    return [{ 
+                        text: `${user.username || 'User'} (₹${user.inrBalance || 0})`, 
+                        callback_data: `manage_user_${userId}` 
+                    }];
+                }),
+                [{ text: '🔙 Back to Admin Panel', callback_data: 'admin_panel' }]
+            ]
+        }
+    });
+}
+
+// Function to show user details
+function showUserDetails(chatId, userId) {
+    const user = userDatabase.users[userId];
+    
+    if (!user) {
+        bot.sendMessage(chatId, "User not found.", {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '🔙 Back to User List', callback_data: 'admin_users' }]
+                ]
+            }
+        });
+        return;
+    }
+    
+    // Get user transactions
+    const userTransactions = userDatabase.transactions.filter(tx => tx.userId === userId);
+    const depositTotal = userTransactions
+        .filter(tx => tx.type === 'deposit')
+        .reduce((sum, tx) => sum + tx.amount, 0);
+    const withdrawalTotal = userTransactions
+        .filter(tx => tx.type === 'withdrawal')
+        .reduce((sum, tx) => sum + tx.amount, 0);
+    
+    // Create user details message
+    let message = `*User Details*\n\n`;
+    message += `User ID: ${userId}\n`;
+    message += `Username: ${user.username || 'Not set'}\n`;
+    message += `Balance: ₹${user.inrBalance || 0}\n`;
+    message += `Crypto Balance: ${user.cryptoBalance || 0} BTC\n`;
+    message += `Total Deposits: ₹${depositTotal}\n`;
+    message += `Total Withdrawals: ₹${withdrawalTotal}\n`;
+    message += `Referrals: ${userDatabase.referrals[userId]?.length || 0}\n`;
+    message += `Joined: ${new Date(user.joinedAt || Date.now()).toLocaleString()}\n`;
+    
+    // Admin actions for this user
+    bot.sendMessage(chatId, message, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '💰 Adjust Balance', callback_data: `adjust_balance_${userId}` }],
+                [{ text: '🔙 Back to User List', callback_data: 'admin_users' }],
+                [{ text: '🔙 Back to Admin Panel', callback_data: 'admin_panel' }]
+            ]
+        }
+    });
+}
+    
+    // Check if the user is the owner
+    if (userId === OWNER_ID) {
+        showAdminPanel(chatId);
+    } else {
+        bot.sendMessage(chatId, "⛔ You don't have permission to access admin controls.");
+    }
+});
+
+// Show admin panel with owner-only buttons
+function showAdminPanel(chatId) {
+    bot.sendMessage(chatId, 
+        `🔐 *ADMIN PANEL*\n\nWelcome, Owner. What would you like to manage today?`, 
+        {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '✅ Approve Withdrawals', callback_data: 'admin_withdrawals' }],
+                    [{ text: '📊 Today\'s Deposits Report', callback_data: 'admin_deposits' }],
+                    [{ text: '👥 Manage Users', callback_data: 'admin_users' }],
+                    [{ text: '◀️ Back to Main Menu', callback_data: 'back_to_main' }]
+                ]
+            }
+        }
+    );
+}
+
 // Start command handler
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
@@ -58,6 +378,9 @@ bot.onText(/\/start/, (msg) => {
         };
     }
     
+    // Check if user is owner to show admin button
+    const isOwner = userId.toString() === OWNER_ID;
+    
     // Welcome message with main menu
     bot.sendMessage(chatId, 
         `Welcome ${firstName} to the Betting App! 🎮\n\nWhat would you like to do today?`, 
@@ -66,7 +389,8 @@ bot.onText(/\/start/, (msg) => {
                 inline_keyboard: [
                     [{ text: '🎮 Play Game', callback_data: 'play_game' }],
                     [{ text: '💰 Deposit', callback_data: 'deposit' }, { text: '💸 Withdraw', callback_data: 'withdraw' }],
-                    [{ text: '👤 Profile', callback_data: 'profile' }, { text: '🔄 Share & Earn', callback_data: 'share' }]
+                    [{ text: '👤 Profile', callback_data: 'profile' }, { text: '🔄 Share & Earn', callback_data: 'share' }],
+                    ...(isOwner ? [[{ text: '🔐 Admin Panel', callback_data: 'admin_panel' }]] : [])
                 ]
             }
         }
@@ -129,12 +453,46 @@ bot.on('callback_query', async (callbackQuery) => {
         case 'transaction_history':
             showTransactionHistory(chatId, userId);
             break;
+        // Admin panel options
+        case 'admin_panel':
+            if (userId.toString() === OWNER_ID) {
+                showAdminPanel(chatId);
+            }
+            break;
+        case 'admin_withdrawals':
+            if (userId.toString() === OWNER_ID) {
+                handlePendingWithdrawals(chatId);
+            }
+            break;
+        case 'admin_deposits':
+            if (userId.toString() === OWNER_ID) {
+                handleTodayDeposits(chatId);
+            }
+            break;
+        case 'admin_users':
+            if (userId.toString() === OWNER_ID) {
+                handleUserManagement(chatId);
+            }
+            break;
         // Back to main menu
         case 'back_to_main':
             showMainMenu(chatId, userId);
             break;
         default:
-            // Handle other callback data if needed
+            // Handle withdrawal approval
+            if (data.startsWith('approve_withdrawal_')) {
+                if (userId.toString() === OWNER_ID) {
+                    const withdrawalId = data.replace('approve_withdrawal_', '');
+                    approveWithdrawal(chatId, withdrawalId);
+                }
+            }
+            // Handle user management
+            else if (data.startsWith('manage_user_')) {
+                if (userId.toString() === OWNER_ID) {
+                    const targetUserId = data.replace('manage_user_', '');
+                    showUserDetails(chatId, targetUserId);
+                }
+            }
             break;
     }
 });
@@ -143,6 +501,9 @@ bot.on('callback_query', async (callbackQuery) => {
 function showMainMenu(chatId, userId) {
     const user = userDatabase.users[userId];
     
+    // Check if user is owner to show admin button
+    const isOwner = userId.toString() === OWNER_ID;
+    
     bot.sendMessage(chatId, 
         `Hello ${user.name}! What would you like to do today?`, 
         {
@@ -150,7 +511,8 @@ function showMainMenu(chatId, userId) {
                 inline_keyboard: [
                     [{ text: '🎮 Play Game', callback_data: 'play_game' }],
                     [{ text: '💰 Deposit', callback_data: 'deposit' }, { text: '💸 Withdraw', callback_data: 'withdraw' }],
-                    [{ text: '👤 Profile', callback_data: 'profile' }, { text: '🔄 Share & Earn', callback_data: 'share' }]
+                    [{ text: '👤 Profile', callback_data: 'profile' }, { text: '🔄 Share & Earn', callback_data: 'share' }],
+                    ...(isOwner ? [[{ text: '🔐 Admin Panel', callback_data: 'admin_panel' }]] : [])
                 ]
             }
         }
@@ -271,6 +633,48 @@ function handleWithdraw(chatId, userId) {
             }
         }
     );
+}
+
+// Function to process withdrawal request (to be called after user enters withdrawal details)
+function processWithdrawalRequest(chatId, userId, method, amount, accountDetails) {
+    const user = userDatabase.users[userId];
+    
+    // Check if user has sufficient balance
+    if (user.inrBalance < amount) {
+        bot.sendMessage(chatId, "Insufficient balance for withdrawal.");
+        return;
+    }
+    
+    // Create a pending withdrawal request
+    const withdrawalId = Date.now().toString();
+    const withdrawal = {
+        id: withdrawalId,
+        userId: userId,
+        method: method,
+        amount: amount,
+        accountDetails: accountDetails,
+        timestamp: new Date().toISOString(),
+        status: 'pending'
+    };
+    
+    // Add to pending withdrawals
+    userDatabase.pendingWithdrawals.push(withdrawal);
+    
+    // Notify user
+    bot.sendMessage(chatId, `Your withdrawal request of ₹${amount} via ${method} has been submitted and is pending approval.`);
+    
+    // Notify owner
+    if (OWNER_ID) {
+        const ownerMessage = `New withdrawal request:\nUser ID: ${userId}\nAmount: ₹${amount}\nMethod: ${method}\nAccount: ${JSON.stringify(accountDetails)}`;
+        bot.sendMessage(OWNER_ID, ownerMessage, {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '✅ Approve', callback_data: `approve_withdrawal_${withdrawalId}` }],
+                    [{ text: '🔐 Admin Panel', callback_data: 'admin_panel' }]
+                ]
+            }
+        });
+    }
 }
 
 // Bank & UPI Withdrawal Selection

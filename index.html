@@ -12,32 +12,32 @@
         <!-- Header Section -->
         <header>
             <div class="how-to-play-btn">
-                <i class="fas fa-question-circle"></i> How to Play
+                <i class="fas fa-question-circle"></i>
             </div>
-            <div class="wallet-info">
-                <span class="balance">₹ 10,000.00</span>
+            <div class="demo-mode-container">
+                <span class="demo-label">DEMO</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="demoToggle" checked>
+                    <span class="slider"></span>
+                </label>
+                <button class="add-funds-btn"><i class="fas fa-plus"></i></button>
             </div>
             <div class="profile-btn">
                 <i class="fas fa-user-circle"></i>
             </div>
         </header>
 
-        <!-- Demo Mode Toggle -->
-        <div class="demo-mode-container">
-            <span class="demo-label">DEMO</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="demoToggle" checked>
-                <span class="slider"></span>
-            </label>
-            <button class="add-funds-btn"><i class="fas fa-plus"></i></button>
-        </div>
-
         <!-- Timer Section -->
         <div class="timer-section">
             <div class="timer-container">
-                <div class="bet-status">Bet is Open</div>
+                <div class="timer-left-container">
+                    <div class="bet-status">Bet is Open</div>
+                    <div class="period-id">Period: #123456</div>
+                </div>
                 <div class="timer">60</div>
-                <div class="period-id">Period: #123456</div>
+                <div class="wallet-info">
+                    <span class="balance">₹ 10,000.00</span>
+                </div>
             </div>
             <div class="last-results">
                 <!-- Last 50 results will be displayed here -->
