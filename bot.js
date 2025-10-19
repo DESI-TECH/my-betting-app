@@ -159,12 +159,25 @@ function showMainMenu(chatId, userId) {
 
 // Play Game Handler
 function handlePlayGame(chatId, userId) {
+    // Get the user data to pass to the game
+    const user = userDatabase.users[userId] || { inrBalance: 0, cryptoBalance: 0 };
+    
+    // Create a unique session token for this user
+    const sessionToken = Buffer.from(`${userId}-${Date.now()}`).toString('base64');
+    
+    // The actual URL of your deployed betting app
+    const gameUrl = 'https://my-betting-app.vercel.app';
+    
     bot.sendMessage(chatId, 
-        `🎮 Opening the game... Get ready to play and win big!`, 
+        `🎮 Opening the game... Get ready to play and win big!
+        
+Your current balance:
+INR: ₹${user.inrBalance.toFixed(2)}
+Crypto: ${user.cryptoBalance.toFixed(6)} BTC`, 
         {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: '🎲 Launch Game', web_app: { url: 'https://t.me/your_game_bot/game' } }],
+                    [{ text: '🎲 Launch Game', web_app: { url: `${gameUrl}?token=${sessionToken}&userId=${userId}` } }],
                     [{ text: '◀️ Back to Menu', callback_data: 'back_to_main' }]
                 ]
             }

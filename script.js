@@ -7,11 +7,35 @@ const gameState = {
     betStatus: 'open',
     lastResults: [],
     myBets: [],
-    globalRecords: []
+    globalRecords: [],
+    telegramUserId: null,
+    telegramToken: null
 };
+
+// Check for Telegram parameters
+function checkTelegramParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const userId = urlParams.get('userId');
+    
+    if (token && userId) {
+        gameState.telegramUserId = userId;
+        gameState.telegramToken = token;
+        gameState.demoMode = false;
+        gameState.balance = 1000; // Use the balance from Telegram or a default
+        
+        console.log('Connected via Telegram Bot:', userId);
+        
+        // Show a notification
+        showNotification('Connected via Telegram Bot', 'success');
+    }
+}
 
 // DOM Elements
 document.addEventListener('DOMContentLoaded', () => {
+    // Check for Telegram parameters
+    checkTelegramParams();
+    
     // Initialize the game
     initializeGame();
     
@@ -61,6 +85,35 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             if (gameState.betStatus === 'open') {
                 openBetAmountModal(btn.textContent);
+            } else {
+                showNotification('Betting is closed for this round!', 'red');
+            }
+        });
+    });
+    
+    // Color Balls
+    const colorBalls = document.querySelectorAll('.color-ball');
+    colorBalls.forEach(ball => {
+        ball.addEventListener('click', () => {
+            if (gameState.betStatus === 'open') {
+                let betType = '';
+                if (ball.classList.contains('red')) betType = 'Red';
+                else if (ball.classList.contains('violet')) betType = 'Violet';
+                else if (ball.classList.contains('green')) betType = 'Green';
+                
+                openBetAmountModal(betType);
+            } else {
+                showNotification('Betting is closed for this round!', 'red');
+            }
+        });
+    });
+    
+    // Number Balls
+    const numberBalls = document.querySelectorAll('.number-ball');
+    numberBalls.forEach(ball => {
+        ball.addEventListener('click', () => {
+            if (gameState.betStatus === 'open') {
+                openBetAmountModal(ball.textContent);
             } else {
                 showNotification('Betting is closed for this round!', 'red');
             }
