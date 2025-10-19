@@ -91,6 +91,21 @@ function setupEventListeners() {
         });
     });
     
+    // Random Betting Button
+    const randomBetBtn = document.querySelector('.random-bet-btn');
+    randomBetBtn.addEventListener('click', () => {
+        if (gameState.betStatus === 'open') {
+            // Generate random bet type
+            const betTypes = ['Red', 'Green', 'Violet', 'Big', 'Small', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            const randomBetType = betTypes[Math.floor(Math.random() * betTypes.length)];
+            
+            // Open bet amount modal with random selection
+            openBetAmountModal(randomBetType);
+        } else {
+            showNotification('Betting is closed for this round!', 'red');
+        }
+    });
+    
     // Color Balls
     const colorBalls = document.querySelectorAll('.color-ball');
     colorBalls.forEach(ball => {

@@ -230,6 +230,31 @@ input:checked + .slider:before {
     box-shadow: var(--glow-effect);
 }
 
+/* Random Bet Button */
+.random-bet-btn {
+    background: linear-gradient(135deg, var(--red-color), var(--violet-color), var(--green-color));
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    border-radius: var(--border-radius);
+    padding: 10px;
+    cursor: pointer;
+    margin: 5px;
+    transition: all 0.3s ease;
+    box-shadow: var(--glow-effect);
+    grid-row: span 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 40px;
+}
+
+.random-bet-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
 .color-balls {
     margin-bottom: 10px;
 }
