@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betting App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header>
+            <div class="how-to-play-btn">
+                <i class="fas fa-question-circle"></i> How to Play
+            </div>
+            <div class="wallet-info">
+                <span class="balance">₹ 10,000.00</span>
+            </div>
+            <div class="profile-btn">
+                <i class="fas fa-user-circle"></i>
+            </div>
+        </header>
+
+        <!-- Demo Mode Toggle -->
+        <div class="demo-mode-container">
+            <span class="demo-label">DEMO</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="demoToggle" checked>
+                <span class="slider"></span>
+            </label>
+            <button class="add-funds-btn"><i class="fas fa-plus"></i></button>
+        </div>
+
+        <!-- Timer Section -->
+        <div class="timer-section">
+            <div class="timer-container">
+                <div class="bet-status">Bet is Open</div>
+                <div class="timer">60</div>
+                <div class="period-id">Period: #123456</div>
+            </div>
+            <div class="last-results">
+                <!-- Last 50 results will be displayed here -->
+            </div>
+        </div>
+
+        <!-- Game Section -->
+        <div class="game-section">
+            <div class="color-balls">
+                <div class="color-row">
+                    <div class="color-ball red"></div>
+                    <div class="color-ball violet"></div>
+                    <div class="color-ball green"></div>
+                </div>
+                <div class="number-row">
+                    <div class="number-ball">0</div>
+                    <div class="number-ball">1</div>
+                    <div class="number-ball">2</div>
+                    <div class="number-ball">3</div>
+                    <div class="number-ball">4</div>
+                    <div class="number-ball">5</div>
+                    <div class="number-ball">6</div>
+                    <div class="number-ball">7</div>
+                    <div class="number-ball">8</div>
+                    <div class="number-ball">9</div>
+                </div>
+            </div>
+
+            <!-- Betting Options -->
+            <div class="betting-options">
+                <button class="bet-btn red-btn">Red</button>
+                <button class="bet-btn violet-btn">Violet</button>
+                <button class="bet-btn green-btn">Green</button>
+                <button class="bet-btn big-btn">Big</button>
+                <button class="bet-btn small-btn">Small</button>
+            </div>
+        </div>
+
+        <!-- History Tabs -->
+        <div class="history-tabs">
+            <button class="tab-btn active" data-tab="global">Global Records</button>
+            <button class="tab-btn" data-tab="chart">Chart</button>
+            <button class="tab-btn" data-tab="my-bets">My Bets</button>
+        </div>
+
+        <!-- History Content -->
+        <div class="history-content">
+            <div class="tab-content active" id="global-content">
+                <!-- Global records will be displayed here -->
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Result</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="global-history">
+                        <!-- Global history data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-content" id="chart-content">
+                <!-- Chart will be displayed here -->
+                <div class="chart-container">
+                    <!-- Chart visualization will go here -->
+                </div>
+            </div>
+            <div class="tab-content" id="my-bets-content">
+                <!-- User's bet history will be displayed here -->
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Selection</th>
+                            <th>Amount</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="my-bets-history">
+                        <!-- User's bet history data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- How to Play Modal -->
+    <div class="modal" id="howToPlayModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-tabs">
+                    <button class="modal-tab active" data-tab="instructions">How to Play</button>
+                    <button class="modal-tab" data-tab="terms">Terms & Conditions</button>
+                </div>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-tab-content active" id="instructions-content">
+                    <h3>How to Play</h3>
+                    <p>1. Choose a color (Red, Violet, or Green) or a number (0-9).</p>
+                    <p>2. Select your bet amount.</p>
+                    <p>3. Place your bet before the timer reaches 0.</p>
+                    <p>4. Wait for the result to be announced.</p>
+                    <p>5. If you win, your winnings will be automatically credited to your wallet.</p>
+                </div>
+                <div class="modal-tab-content" id="terms-content">
+                    <h3>Terms & Conditions</h3>
+                    <p>1. You must be 18 years or older to play.</p>
+                    <p>2. All bets are final once placed.</p>
+                    <p>3. The company reserves the right to modify or cancel any bet in case of technical issues.</p>
+                    <p>4. Winnings will be credited to your wallet immediately after the result is announced.</p>
+                    <p>5. The company reserves the right to suspend or terminate your account if any fraudulent activity is detected.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Profile</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="profile-tabs">
+                    <button class="profile-tab active" data-tab="balance">Balance</button>
+                    <button class="profile-tab" data-tab="transactions">Transaction History</button>
+                </div>
+                <div class="profile-tab-content active" id="balance-content">
+                    <div class="balance-info">
+                        <div class="balance-item">
+                            <h4>Real Balance</h4>
+                            <p class="real-balance">₹ 10,000.00</p>
+                        </div>
+                        <div class="balance-item">
+                            <h4>Crypto Balance</h4>
+                            <p class="crypto-balance">0.005 BTC</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-tab-content" id="transactions-content">
+                    <table class="transaction-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-history">
+                            <!-- Transaction history data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bet Amount Modal -->
+    <div class="modal" id="betAmountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Place Your Bet</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="bet-info">
+                    <p>Selection: <span id="betSelection">Red</span></p>
+                </div>
+                <div class="amount-input">
+                    <label for="betAmount">Amount:</label>
+                    <input type="number" id="betAmount" value="10" min="10">
+                </div>
+                <div class="multiplier-buttons">
+                    <button class="multiplier-btn" data-value="1">1x</button>
+                    <button class="multiplier-btn" data-value="2">2x</button>
+                    <button class="multiplier-btn" data-value="5">5x</button>
+                    <button class="multiplier-btn" data-value="10">10x</button>
+                    <button class="multiplier-btn" data-value="50">50x</button>
+                    <button class="multiplier-btn" data-value="100">100x</button>
+                </div>
+                <button class="confirm-bet-btn">Confirm Bet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Popup -->
+    <div class="result-popup" id="resultPopup">
+        <div class="result-content">
+            <div class="result-number"></div>
+            <div class="result-period"></div>
+            <div class="result-message"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

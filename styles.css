@@ -1,0 +1,638 @@
+/* Global Styles */
+:root {
+    --red-color: #ff3b3b;
+    --violet-color: #9c27b0;
+    --green-color: #4caf50;
+    --dark-bg: #121212;
+    --card-bg: rgba(30, 30, 30, 0.7);
+    --text-color: #ffffff;
+    --border-radius: 10px;
+    --glow-effect: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image: linear-gradient(to bottom, #1a1a2e, #16213e);
+}
+
+.app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 10px;
+    position: relative;
+}
+
+/* Header Styles */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 15px;
+}
+
+.how-to-play-btn, .profile-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    box-shadow: var(--glow-effect);
+    transition: all 0.3s ease;
+}
+
+.how-to-play-btn:hover, .profile-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.wallet-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    box-shadow: var(--glow-effect);
+}
+
+/* Demo Mode Styles */
+.demo-mode-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.demo-label {
+    color: #3498db;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #3498db;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--green-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.add-funds-btn {
+    background-color: var(--green-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    cursor: pointer;
+    box-shadow: var(--glow-effect);
+    transition: all 0.3s ease;
+}
+
+.add-funds-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Timer Section Styles */
+.timer-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.timer-container {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.bet-status {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--green-color);
+}
+
+.timer {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.period-id {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.last-results {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px 0;
+    width: 100%;
+}
+
+.result-item {
+    min-width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 3px;
+    font-weight: bold;
+    box-shadow: var(--glow-effect);
+}
+
+.result-red {
+    background-color: var(--red-color);
+}
+
+.result-violet {
+    background-color: var(--violet-color);
+}
+
+.result-green {
+    background-color: var(--green-color);
+}
+
+/* Game Section Styles */
+.game-section {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--glow-effect);
+}
+
+.color-balls {
+    margin-bottom: 20px;
+}
+
+.color-row, .number-row {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.color-ball {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: var(--glow-effect);
+}
+
+.red {
+    background-color: var(--red-color);
+}
+
+.violet {
+    background-color: var(--violet-color);
+}
+
+.green {
+    background-color: var(--green-color);
+}
+
+.number-row {
+    flex-wrap: wrap;
+}
+
+.number-ball {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+    font-weight: bold;
+    box-shadow: var(--glow-effect);
+}
+
+.number-ball:nth-child(1), .number-ball:nth-child(3), .number-ball:nth-child(7), .number-ball:nth-child(9) {
+    background-color: var(--red-color);
+}
+
+.number-ball:nth-child(2), .number-ball:nth-child(4), .number-ball:nth-child(6), .number-ball:nth-child(8) {
+    background-color: var(--green-color);
+}
+
+.number-ball:nth-child(0), .number-ball:nth-child(5) {
+    background-color: var(--violet-color);
+}
+
+/* Betting Options Styles */
+.betting-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.bet-btn {
+    width: 48%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: var(--border-radius);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: var(--glow-effect);
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.red-btn {
+    border: 2px solid var(--red-color);
+    color: var(--red-color);
+}
+
+.violet-btn {
+    border: 2px solid var(--violet-color);
+    color: var(--violet-color);
+}
+
+.green-btn {
+    border: 2px solid var(--green-color);
+    color: var(--green-color);
+}
+
+.big-btn, .small-btn {
+    border: 2px solid #f39c12;
+    color: #f39c12;
+}
+
+.bet-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.bet-btn:active {
+    transform: translateY(0);
+}
+
+/* History Tabs Styles */
+.history-tabs {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:first-child {
+    border-top-left-radius: var(--border-radius);
+    border-bottom-left-radius: var(--border-radius);
+}
+
+.tab-btn:last-child {
+    border-top-right-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+}
+
+.tab-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: var(--glow-effect);
+}
+
+/* History Content Styles */
+.history-content {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: var(--glow-effect);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th, .history-table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-table th {
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.chart-container {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--glow-effect);
+    backdrop-filter: blur(10px);
+}
+
+.modal-header {
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.close-btn {
+    font-size: 24px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.modal-body {
+    padding: 15px;
+}
+
+.modal-tabs, .profile-tabs {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.modal-tab, .profile-tab {
+    flex: 1;
+    padding: 8px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    text-align: center;
+    border-bottom: 2px solid transparent;
+}
+
+.modal-tab.active, .profile-tab.active {
+    border-bottom: 2px solid var(--green-color);
+    font-weight: bold;
+}
+
+.modal-tab-content, .profile-tab-content {
+    display: none;
+}
+
+.modal-tab-content.active, .profile-tab-content.active {
+    display: block;
+}
+
+.modal-tab-content h3, .profile-tab-content h3 {
+    margin-bottom: 10px;
+}
+
+.modal-tab-content p, .profile-tab-content p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+/* Bet Amount Modal Styles */
+.bet-info {
+    margin-bottom: 15px;
+}
+
+.amount-input {
+    margin-bottom: 15px;
+}
+
+.amount-input label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.amount-input input {
+    width: 100%;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.multiplier-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.multiplier-btn {
+    flex: 1;
+    min-width: 60px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius);
+    color: white;
+    cursor: pointer;
+}
+
+.multiplier-btn:hover, .multiplier-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.confirm-bet-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--green-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.confirm-bet-btn:hover {
+    background-color: #45a049;
+}
+
+/* Profile Modal Styles */
+.balance-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.balance-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: var(--border-radius);
+}
+
+.balance-item h4 {
+    margin-bottom: 5px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.real-balance, .crypto-balance {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.transaction-table th, .transaction-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Result Popup Styles */
+.result-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    animation: fadeInOut 2.5s forwards;
+}
+
+.result-content {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--glow-effect);
+    backdrop-filter: blur(10px);
+}
+
+.result-number {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.result-period {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 10px;
+}
+
+.result-message {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Responsive Styles */
+@media (max-width: 480px) {
+    .bet-btn {
+        width: 100%;
+    }
+    
+    .color-ball {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .number-ball {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+}
